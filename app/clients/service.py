@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import status
+from fastapi import HTTPException, status
 from uuid import UUID
 
 from app.clients import crud
@@ -28,7 +28,7 @@ async def list_clients(
         if expired:
             clients = [c for c in clients if c.expires_at < now]
         else:
-            clients = [c for c in clients if c.created_at >= now]
+            clients = [c for c in clients if c.expires_at >= now]
 
     return clients
 
@@ -38,7 +38,7 @@ async def get_client(client_id: UUID) -> SClientResponse:
     client = await crud.get_client(client_id=client_id)
 
     if not client:
-        raise status.HTTP_404_NOT_FOUND(detils='Client not found')
+        raise HTTPException(status_code=404, detail="Client not found")
     
     return client
 
@@ -48,7 +48,7 @@ async def delete_client(client_id: UUID) -> None:
     client = await crud.get_client(client_id=client_id)
 
     if not client:
-        raise status.HTTP_404_NOT_FOUND(details='Client not found')
+        raise HTTPException(status_code=404, detail="Client not found")
     
     await crud.delete_client(client=client)
 
@@ -61,7 +61,7 @@ async def extend_client(
     client = await crud.get_client(client_id=client_id)
     
     if not client:
-        raise status.HTTP_404_NOT_FOUND(details='Client not found')
+        raise HTTPException(status_code=404, detail="Client not found")
     
     return await crud.extend_client(client=client, days=days)
 
@@ -71,9 +71,9 @@ async def block_client(client_id: UUID) -> None:
     client = await crud.get_client(client_id=client_id)
 
     if not client:
-        raise status.HTTP_404_NOT_FOUND(details='Client not found')
+        raise HTTPException(status_code=404, detail="Client not found")
     
-    await crud.block_client(client=client_id)
+    await crud.block_client(client=client)
 
 
 # Разблокировка клиента
@@ -81,7 +81,7 @@ async def unblock_client(client_id: UUID) -> None:
     client = await crud.get_client(client_id=client_id)
 
     if not client:
-        raise status.HTTP_404_NOT_FOUND(details='Client not found')
+        raise HTTPException(status_code=404, detail="Client not found")
     
-    await crud.unblock_client(client=client_id)
+    await crud.unblock_client(client=client)
 

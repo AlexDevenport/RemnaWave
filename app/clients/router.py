@@ -37,12 +37,12 @@ async def delete_client(client_id: UUID) -> None:
 
 
 # Эндпоинт продления подписки клиента
-@router.post('/extend')
+@router.post('/{client_id}/extend')
 async def extend_client(
     client_id: UUID,
     body: SClientExtend
-) -> SClientExtend:
-    await service.extend_client(client_id)
+) -> dict:
+    await service.extend_client(client_id, body.days)
     return {'status': 'extended'}
 
 
