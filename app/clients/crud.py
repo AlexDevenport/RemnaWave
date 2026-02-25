@@ -8,10 +8,10 @@ from app.clients.models import Client, ClientStatus
 
 
 # Создание нового клиента
-async def create_client() -> Client:
+async def create_client(days: int) -> Client:
     client = Client(
         status=ClientStatus.active,
-        expires_at=datetime.utcnow() + timedelta(days=30),
+        expires_at=datetime.utcnow() + timedelta(days=days)
     )
 
     async with async_session_maker() as session:
@@ -23,11 +23,27 @@ async def create_client() -> Client:
 
 
 # Получение списка всех клиентов
-async def list_clients() -> list[Client]:
+async def list_clients(
+    status: ClientStatus | None = None,
+    expired: bool | None = None
+) -> list[Client]:
     async with async_session_maker() as session:
-        result = await session.execute(select(Client))
+        stmt = select(Client).order_by(Client.created_at.desc())
 
-        return result.scalars().all()
+    if status is not None:
+        stmt = stmt.where(Client.status == status)
+
+    if expired is not None:
+        now = datetime.utcnow()
+        
+        if expired:
+            stmt = stmt.where(Client.expires_at < now)
+        else:
+            stmt = stmt.where(Client.expires_at >= now)
+    
+    result = await session.execute(stmt)
+    
+    return result.scalars().all()
 
 
 # Получение клиента по id
@@ -46,35 +62,51 @@ async def delete_client(client: Client) -> None:
 
 # Продление времени клиента
 async def extend_client(
-    client: Client, 
+    client_id: UUID, 
     days: int
 ) -> None:
     async with async_session_maker() as session:
+        client = await session.get(Client, client_id)
 
-        db_client = await session.get(Client, client.id)
-
-        if db_client.expires_at:
-            db_client.expires_at += timedelta(days=days)
+        if not client:
+            return None
+        
+        if client.expires_at:
+            client.expires_at += timedelta(days=days)
         else:
-            db_client.expires_at = datetime.utcnow() + timedelta(days=days)
+            client.expires_at = datetime.utcnow() + timedelta(days=days)
 
         await session.commit()
-        await session.refresh(db_client)
-
-        return db_client
+        await session.refresh(client)
+        
+        return client
 
 
 # Блокировка клиента
-async def block_client(client: Client) -> None:
+async def block_client(client_id: UUID) -> None:
     async with async_session_maker() as session:
-        db_client = await session.get(Client, client.id)
-        db_client.status = ClientStatus.blocked
+        client = await session.get(Client, client_id)
+
+        if not client:
+            return None
+
+        client.status = ClientStatus.blocked
         await session.commit()
+        await session.refresh(client)
+
+        return client
 
 
 # Разблокировка клиента
-async def unblock_client(client: Client) -> None:
+async def unblock_client(client_id: UUID) -> None:
     async with async_session_maker() as session:
-        db_client = await session.get(Client, client.id)
-        db_client.status = ClientStatus.active
+        client = await session.get(Client, client_id)
+
+        if not client:
+            return None
+
+        client.status = ClientStatus.active
         await session.commit()
+        await session.refresh(client)
+
+        return client

@@ -16,7 +16,7 @@ async def create_client() -> SClientCreate:
 
 
 # Эндпоинт для получения всех клиентов
-@router.get('/')
+@router.get('/', status_code=status.HTTP_200_OK)
 async def list_clients(
     status: ClientStatus | None = Query(None),
     expired: bool | None = Query(None)
@@ -25,7 +25,7 @@ async def list_clients(
 
 
 # Эндпоинт для получения клиента по id
-@router.get('/{client_id}')
+@router.get('/{client_id}', status_code=status.HTTP_200_OK)
 async def get_client(client_id: UUID) -> SClientResponse:
     return await service.get_client(client_id)
 
@@ -37,7 +37,7 @@ async def delete_client(client_id: UUID) -> None:
 
 
 # Эндпоинт продления подписки клиента
-@router.post('/{client_id}', status_code=status.HTTP_200_OK)
+@router.post('/{client_id}/extend', status_code=status.HTTP_200_OK)
 async def extend_client(
     client_id: UUID,
     body: SClientExtend

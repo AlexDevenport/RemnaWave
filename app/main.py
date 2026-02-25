@@ -1,6 +1,6 @@
 from app.database import async_session_maker
 from app.clients.router import router as clients_router
-# from app.operations.router import router as operations_router
+from app.operations.router import router as operations_router
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from pathlib import Path
@@ -9,7 +9,7 @@ from sqlalchemy import text
 
 app = FastAPI()
 app.include_router(clients_router)
-# app.include_router(operations_router)
+app.include_router(operations_router)
 
 
 origins = ['*',]
