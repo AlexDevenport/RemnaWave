@@ -31,30 +31,27 @@ async def get_client(client_id: UUID) -> SClientResponse:
 
 
 # Эндпоинт удаления клиента
-@router.delete('/delete/{client_id}', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/{client_id}', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_client(client_id: UUID) -> None:
     await service.delete_client(client_id)
 
 
 # Эндпоинт продления подписки клиента
-@router.post('/{client_id}/extend')
+@router.post('/{client_id}', status_code=status.HTTP_200_OK)
 async def extend_client(
     client_id: UUID,
     body: SClientExtend
-) -> dict:
+) -> None:
     await service.extend_client(client_id, body.days)
-    return {'status': 'extended'}
 
 
 # Эндпоинт блокировки клиента
-@router.post('/{client_id}/block')
-async def block_client(client_id: UUID):
+@router.post('/{client_id}/block', status_code=status.HTTP_200_OK)
+async def block_client(client_id: UUID) -> None:
     await service.block_client(client_id)
-    return {'status': 'blocked'}
 
 
 # Эндпоинт разблокировки клиента
-@router.post('/{client_id}/unblock')
-async def unblock_client(client_id: UUID):
+@router.post('/{client_id}/unblock', status_code=status.HTTP_200_OK)
+async def unblock_client(client_id: UUID) -> None:
     await service.unblock_client(client_id)
-    return {'status': 'active'}

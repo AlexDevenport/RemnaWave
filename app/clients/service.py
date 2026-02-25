@@ -57,7 +57,7 @@ async def delete_client(client_id: UUID) -> None:
 async def extend_client(
     client_id: UUID, 
     days: int
-) -> SClientResponse:
+) -> None:
     client = await crud.get_client(client_id=client_id)
     
     if not client:

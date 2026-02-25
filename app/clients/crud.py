@@ -48,7 +48,7 @@ async def delete_client(client: Client) -> None:
 async def extend_client(
     client: Client, 
     days: int
-) -> Client:
+) -> None:
     async with async_session_maker() as session:
 
         db_client = await session.get(Client, client.id)
